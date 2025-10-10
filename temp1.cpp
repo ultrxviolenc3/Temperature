@@ -60,6 +60,35 @@ class temperature{
 			   } 
 			} 
 		}
+		
+		double sredn(unsigned int strok){
+		if(strok >= numstrok)
+		{
+			cout<<"Неверный номер строки"<<endl;
+			return 0;
+			}
+		double sum=0.0;
+		for(unsigned int i=0;i<numstolb;i++)
+		{ 
+			sum+=temp[strok][i].toC();
+			}
+		return sum / numstolb ;
+		}
+		 double min_in_strok(unsigned int strok) {
+    if (strok >= numstrok) {
+        cout << "Неверный номер строки" << endl;
+        return 0;
+    }
+    double min_val = temp[strok][0].toC();
+    for (unsigned int i = 1; i < numstolb; ++i) {
+        double val = temp[strok][i].toC();
+        if (val < min_val)
+            min_val = val;
+    }
+
+    return min_val;
+  }
+  
 		~table() {
 			
 			if(temp)
@@ -125,30 +154,19 @@ class temperature{
             cout << endl;
         }
     }
-    double sredn(unsigned int strok){
-		if(strok >= numstrok)
-		{
-			cout<<"Неверный номер строки"<<endl;
-			return 0;
-			}
-		double sum=0.0;
-		for(unsigned int i=0;i<numstolb;i++)
-		{ 
-			sum+=temp[strok][i].toC();
-			}
-		return sum / numstolb ;
-		}
-	
+    
 	};
 	
 
 int main ()
 { 
+
 int com=-1;
 table t1,t2;
  if (!t1.readFromFile("input1.txt") || !t2.readFromFile("input2.txt")) {
         cout << "Ошибка при чтении файлов!" << endl;
     }
+ int strok;
 while(com!=0)
 { cout << "1 - Прочитать и вывести"<<endl
 	   << "2 - Средняя температура по строке"<<endl
@@ -167,17 +185,19 @@ while(com!=0)
 		 break;
 		 
 		 case 2:
-		 int strok;
 		 cout<<"Введите номер строки"<<endl;
 		 cin>>strok;
 		 cout<<"Средняя температура по "<<strok<<" строке "<<"в Цельсиях : "<< t1.sredn(strok-1)<<endl; 
 		 
         break;		 
 		 
-		/* case 3:
+		 case 3:
+		cout << "Введите номер строки"<<endl;
+        cin >> strok;
+        cout << "Минимальная температура в " << strok << " строке "<< "в Цельсиях : " << t1.min_in_strok(strok - 1)<< endl;
 		 break;
 		 
-		 case 4:
+		/* case 4:
 		 break;
 */
          // case 5:
@@ -194,4 +214,3 @@ while(com!=0)
 
 return 0;
 }
- 

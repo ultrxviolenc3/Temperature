@@ -10,9 +10,7 @@ class temperature{
 	public:
 	
 	temperature(double t=0.0, char s='C') : temper(t), scale(s) {}
-	 void set(double t, char s)  { temper=t; scale=s;
-        
-    }
+	 void set(double t, char s)  { temper=t; scale=s; }
 	double toC() { 
 		
 		if( scale == 'C' ) return temper ;
@@ -34,7 +32,7 @@ class temperature{
 		temperature** temp;
 		
 		public:
-		table(unsigned int n = 0, unsigned int k =0) : numstrok(n), numstolb(k)
+		table(unsigned int n = 0, unsigned int k =0) : numstrok(n), numstolb(k), temp(nullptr)
 		{
 			if(n > 0 && k > 0) {
 			
@@ -54,6 +52,8 @@ class temperature{
 				     }
 				       delete[] temp;
                    temp = nullptr;
+                     numstolb=0;
+                     numstrok=0;
                      return; 
 				}
 				
@@ -61,7 +61,7 @@ class temperature{
 			} 
 		}
 		
-		double sredn(unsigned int strok){
+		double sredn(unsigned int strok){ ///sredn
 		if(strok >= numstrok)
 		{
 			cout<<"Неверный номер строки"<<endl;
@@ -74,7 +74,7 @@ class temperature{
 			}
 		return sum / numstolb ;
 		}
-		 double min_in_strok(unsigned int strok) {
+		 double min_in_strok(unsigned int strok) { ///min
     if (strok >= numstrok) {
         cout << "Неверный номер строки" << endl;
         return 0;
@@ -88,6 +88,24 @@ class temperature{
 
     return min_val;
   }
+  
+  double maxtable() { ///max
+    if (!temp || numstrok == 0 || numstolb == 0) {
+        cout << "Таблица пустая" << endl;
+        return 0;
+    }
+
+    double max_val = temp[0][0].toC();
+
+    for (unsigned int i = 0; i < numstrok; ++i) {
+        for (unsigned int j = 0; j < numstolb; ++j) {
+            double val = temp[i][j].toC();
+            if (val > max_val)
+                max_val = val;
+        }
+    }
+    return max_val;
+}
   
 		~table() {
 			
@@ -200,11 +218,12 @@ while(com!=0)
 		/* case 4:
 		 break;
 */
-         // case 5:
-        // break;
+        case 5:
+        cout<<"Максимальная температура в таблице в Цельсиях  : " << t1.maxtable() << endl; 
+        break;
 		 
 		 case 0:
-		 exit(1);
+		 exit(0);
 		default:
 		 cout << "Такой команды нет в списке"<<endl;
 		 
@@ -214,3 +233,4 @@ while(com!=0)
 
 return 0;
 }
+///Остались : Перегрузка оператора, case 4, конструктор копирования, проверки на входные данные, еще раз проверить выделение памяти

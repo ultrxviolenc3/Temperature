@@ -15,13 +15,20 @@ class temperature{
 		
 		if( scale == 'C' ) return temper ;
 		else if ( scale == 'K' ) return temper - 273.15;
-		else if( scale == 'F' ) return (temper - 32.0) / 1.8 ;
-		else return -1;
+		else return (temper - 32.0) / 1.8 ; //F
 		}
 	
        void print()  {
         cout<<"("<<temper<<", "<<scale<<")";
     }
+    
+    double gettemper() { 
+		return temper; 
+		}
+		
+    char getscale() {
+		 return scale; 
+		 }
 	
 	};
 	
@@ -61,6 +68,23 @@ class temperature{
 			} 
 		}
 		
+		table(const table& other) ///konst kop
+		{
+    numstrok = other.numstrok;
+    numstolb = other.numstolb;
+
+    if (numstrok > 0 && numstolb > 0) {
+        temp = new temperature*[numstrok];
+        for (unsigned int i = 0; i < numstrok; i++) {
+            temp[i] = new temperature[numstolb];
+            for (unsigned int j = 0; j < numstolb; j++) {
+                temp[i][j] = other.temp[i][j]; 
+            }
+        }
+    } else {
+        temp = nullptr;
+            }
+       }
 		double sredn(unsigned int strok){ ///sredn
 		if(strok >= numstrok)
 		{
@@ -106,6 +130,32 @@ class temperature{
     }
     return max_val;
 }
+table operator+(const table& other) { ///peregruzka
+    if (numstrok != other.numstrok || numstolb != other.numstolb) {
+        cout << "Ошибка: таблицы разных размеров, сложение невозможно!" << endl;
+        return table();
+    }
+
+    table result(numstrok, numstolb);
+
+    for (unsigned int i = 0; i < numstrok; i++) {
+        for (unsigned int j = 0; j < numstolb; j++) {
+            double t1 = temp[i][j].toC();               
+            double t2 = other.temp[i][j].toC();        
+            double sumC = t1 + t2;                     
+
+            char scale = temp[i][j].getscale();   
+            double summa;
+
+            if (scale == 'C') summa = sumC;
+            else if (scale == 'K') summa = sumC + 273.15;
+            else summa = sumC * 1.8 + 32.0;         
+
+            result.temp[i][j].set(summa, scale);
+        }
+    }
+    return result;
+}
   
 		~table() {
 			
@@ -119,12 +169,12 @@ class temperature{
 		 bool readFromFile(const string& filename) {
         ifstream fin(filename);
         if (!fin.is_open()) {
-            cout << "Ошибка: не удалось открыть файл " << filename << endl;
+            cout << "Ошибка при открытии файла "  << endl;
             return false;
         }
         fin >> numstrok >> numstolb;
         if (!fin || numstrok == 0 || numstolb == 0) {
-        cout << "Ошибка: неверные размеры таблицы" << endl;
+        cout << "Ошибка неверные размеры таблицы" << endl;
         return false;
     }
     if (temp) {
@@ -182,7 +232,7 @@ int main ()
 int com=-1;
 table t1,t2;
  if (!t1.readFromFile("input1.txt") || !t2.readFromFile("input2.txt")) {
-        cout << "Ошибка при чтении файлов!" << endl;
+        exit(1);
     }
  int strok;
 while(com!=0)
@@ -215,13 +265,15 @@ while(com!=0)
         cout << "Минимальная температура в " << strok << " строке "<< "в Цельсиях : " << t1.min_in_strok(strok - 1)<< endl;
 		 break;
 		 
-		/* case 4:
+		 case 4:{
+		 table t3 = t1 + t2;
+		 cout<<"Результат суммы двух таблиц : "<<endl;
+		 t3.print();
 		 break;
-*/
+}
         case 5:
         cout<<"Максимальная температура в таблице в Цельсиях  : " << t1.maxtable() << endl; 
-        break;
-		 
+        break;		 
 		 case 0:
 		 exit(0);
 		default:
@@ -233,4 +285,4 @@ while(com!=0)
 
 return 0;
 }
-///Остались : Перегрузка оператора, case 4, конструктор копирования, проверки на входные данные, еще раз проверить выделение памяти
+///Остались :  проверки

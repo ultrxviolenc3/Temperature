@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <stdexcept>
 using namespace std;
 
 class temperature{
@@ -12,6 +11,7 @@ class temperature{
 	
 	temperature(double t=0.0, char s='C') : temper(t), scale(s) {}
 	 void set(double t, char s)  { temper=t; scale=s; }
+	 
 	double toC() { 
 		
 		if( scale == 'C' ) return temper ;
@@ -86,47 +86,59 @@ class temperature{
         temp = nullptr;
             }
        }
-		double sredn(unsigned int strok){ ///sredn
-		if(strok >= numstrok)
-		{
-			 throw std::out_of_range ("Неверный номер строки");
-			}
-		double sum=0.0;
-		for(unsigned int i=0;i<numstolb;i++)
-		{ 
-			sum+=temp[strok][i].toC();
-			}
-		return sum / numstolb ;
-		}
-		
-		 double min_in_strok(unsigned int strok) { ///min
+		bool sredn(unsigned int strok, double* result) {
+    if (temp == nullptr || numstrok == 0) {
+        cout << "Ошибка таблица пуста!"<< endl;
+        return false;
+    }
     if (strok >= numstrok) {
-        throw std::out_of_range("Неверный номер строки" );
-        
+        cout << "Ошибка такой строки нет!"<< endl;
+        return false;
     }
-    double min_val = temp[strok][0].toC();
-    for (unsigned int i = 1; i < numstolb; ++i) {
+
+    double sum = 0;
+    for (unsigned int i = 0; i < numstolb; i++)
+        sum += temp[strok][i].toC();
+
+    *result = sum / numstolb;  
+    return true;              
+}
+
+		
+		bool min_in_strok(unsigned int strok, double* minimum) { 
+    if (!minimum) return false;
+    if (temp == nullptr || numstrok == 0 || numstolb == 0) {
+        cout << "Ошибка таблица пуста!" << endl;
+        return false;
+    }
+    if (strok >= numstrok) {
+        cout << "Ошибка неверный номер строки" << endl;
+        return false;
+    }
+    double tmin= temp[strok][0].toC();
+    for (unsigned int i = 1; i < numstolb; i++) {
         double val = temp[strok][i].toC();
-        if (val < min_val)
-            min_val = val;
+        if (val < tmin) tmin = val;
     }
-
-    return min_val;
-  }
+    *minimum = tmin;
+    return true;
+}
   
-  double maxtable() { ///max
-    
-
-    double max_val = temp[0][0].toC();
-
+  bool maxtable(double* maximum) {  
+    if (!maximum) return false;
+    if (temp == nullptr || numstrok == 0 || numstolb == 0) {
+        cout << "Ошибка: таблица пуста!" << endl;
+        return false;
+    }
+    double max = temp[0][0].toC();
     for (unsigned int i = 0; i < numstrok; ++i) {
         for (unsigned int j = 0; j < numstolb; ++j) {
             double val = temp[i][j].toC();
-            if (val > max_val)
-                max_val = val;
+            if (val > max) max = val;
         }
     }
-    return max_val;
+    *maximum = max;
+    return true;
 }
 table operator+(const table& other) { ///peregruzka
     if (numstrok != other.numstrok || numstolb != other.numstolb) {
@@ -170,8 +182,13 @@ table operator+(const table& other) { ///peregruzka
             cout << "Ошибка при открытии файла "  << endl;
             return false;
         }
-        fin >> numstrok >> numstolb;
-        if (!fin || numstrok == 0 || numstolb == 0) {
+        unsigned int tnumstrok,tnumstolb;
+        if (!(fin >> tnumstrok >> tnumstolb)) {
+        cout << "Ошибка не удалось прочитать размеры таблицы"<<endl;
+        return false;
+    }
+        
+        if (tnumstrok == 0 || tnumstolb == 0) {
         cout << "Ошибка неверные размеры таблицы" << endl;
         return false;
     }
@@ -181,6 +198,9 @@ table operator+(const table& other) { ///peregruzka
     delete[] temp;
     temp = nullptr;
 }
+
+       numstrok = tnumstrok;
+       numstolb = tnumstolb;
         temp = new (nothrow) temperature*[numstrok];
           if (!temp) {
         cout << "Ошибка выделения памяти" << endl;
@@ -191,20 +211,43 @@ table operator+(const table& other) { ///peregruzka
          if (!temp[i]) {
            cout << "Ошибка выделения памяти " << endl;
             temp = nullptr;
+            numstolb=0;
+            numstrok=0;
         return false;
     
     }
    } 
-    
+    for (unsigned i = 0; i < numstrok; ++i) {
+        for (unsigned j = 0; j < numstolb; ++j) {
+            double val;
+            char sc;
 
-        for (unsigned int i = 0; i < numstrok; ++i) {
-            for (unsigned int j = 0; j < numstolb; ++j) {
-                double val;
-                char sc;
-                fin >> val >> sc;
-                temp[i][j].set(val, sc);
+            if (!(fin >> val >> sc)) {
+                cout << "Ошибка к неверный формат данных в ячейке "<< endl;
+                return false;
+          }
+            if (sc != 'C' && sc != 'K' && sc != 'F') {
+                cout << "Ошибка неизвестная шкала '" << endl;
+                return false;
             }
-        } 
+
+            if (sc == 'K' && val <= 0) {
+                cout << "Ошибка температура не имеет физического смысла" << endl;
+                return false;
+            }
+            if (sc == 'C' && val <=-273.15) {
+          cout << "Ошибка температура не имеет физического смысла"<<endl;
+    return false;
+}
+       if (sc == 'F' && val <= -459.67) {
+    cout << "Ошибка температура не имеет физического смысла"<<endl;
+    return false;
+                   }
+            temp[i][j].set(val, sc);
+        }
+    }
+
+        
         fin.close();
         return true;
        } 
@@ -253,33 +296,28 @@ while(com!=0)
                     t2.print();
 		 break;
 		 
-		 case 2:
-		{
-		 cout<<"Введите номер строки"<<endl;
-		 cin>>strok;
-		 try {
-			 double sredn=t1.sredn(strok-1);
-		 cout<<"Средняя температура по "<<strok<<" строке "<<"в Цельсиях : "<< sredn <<endl; 
-	}
-	catch (const std::out_of_range& e) {
-        cout << e.what() << endl; 
+		 case 2: {
+	 cout << "Введите номер строки: ";
+    cin >> strok;
+
+    double sr; 
+    if (t1.sredn(strok - 1, &sr)) {
+        cout << "Средняя температура: " << sr << " C" << endl;
     }
-        break;		 
-      }  
+    break;
+}  
 		 
 		 case 3: {
-		 cout << "Введите номер строки"<<endl;
-         cin >> strok;
-         try {
-			 double min=t1.sredn(strok-1);
-        cout << "Минимальная температура в " << strok << " строке "<< "в Цельсиях : " <<min<< endl; 
-        }
-        catch (const std::out_of_range& e){
-			
-			cout << e.what() << endl;
-			}
-		 break;
-	 }
+    cout << "Введите номер строки" << endl;
+    cin >> strok;
+    double minimum;
+    if (t1.min_in_strok(strok - 1, &minimum)) {
+        cout << "Минимальная температура в " << strok
+             << " строке в Цельсиях : " << minimum << endl;
+    }
+    break;
+}
+		 
 	 
 		 case 4:{
 		 t3=t1+t2;
@@ -288,9 +326,13 @@ while(com!=0)
 		 t3.print();
 		 break;
 }
-        case 5:
-        cout<<"Максимальная температура в таблице в Цельсиях  : " << t1.maxtable() << endl; 
-        break;		 
+       case 5: {
+    double maximum;
+    if (t1.maxtable(&maximum)) {
+        cout << "Максимальная температура в таблице в Цельсиях  : " << maximum << endl;
+    }
+    break;
+}	 
 		 case 0:
 		 exit(0);
 		default:
@@ -302,5 +344,4 @@ while(com!=0)
 
 return 0;
 }
-///Остались :  проверки
-///  проверить на примере  
+///сумма проверки??

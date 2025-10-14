@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 using namespace std;
 
 class temperature{
@@ -69,7 +70,7 @@ class temperature{
 		}
 		
 		table(const table& other) ///konst kop
-		{
+		{ cout << "Konstruktor kop\n"; 
     numstrok = other.numstrok;
     numstolb = other.numstolb;
 
@@ -88,8 +89,7 @@ class temperature{
 		double sredn(unsigned int strok){ ///sredn
 		if(strok >= numstrok)
 		{
-			cout<<"Неверный номер строки"<<endl;
-			return 0;
+			 throw std::out_of_range ("Неверный номер строки");
 			}
 		double sum=0.0;
 		for(unsigned int i=0;i<numstolb;i++)
@@ -98,10 +98,11 @@ class temperature{
 			}
 		return sum / numstolb ;
 		}
+		
 		 double min_in_strok(unsigned int strok) { ///min
     if (strok >= numstrok) {
-        cout << "Неверный номер строки" << endl;
-        return 0;
+        throw std::out_of_range("Неверный номер строки" );
+        
     }
     double min_val = temp[strok][0].toC();
     for (unsigned int i = 1; i < numstolb; ++i) {
@@ -114,10 +115,7 @@ class temperature{
   }
   
   double maxtable() { ///max
-    if (!temp || numstrok == 0 || numstolb == 0) {
-        cout << "Таблица пустая" << endl;
-        return 0;
-    }
+    
 
     double max_val = temp[0][0].toC();
 
@@ -133,7 +131,7 @@ class temperature{
 table operator+(const table& other) { ///peregruzka
     if (numstrok != other.numstrok || numstolb != other.numstolb) {
         cout << "Ошибка: таблицы разных размеров, сложение невозможно!" << endl;
-        return table();
+        return false;
     }
 
     table result(numstrok, numstolb);
@@ -230,7 +228,7 @@ int main ()
 { 
 
 int com=-1;
-table t1,t2;
+table t1,t2,t3;
  if (!t1.readFromFile("input1.txt") || !t2.readFromFile("input2.txt")) {
         exit(1);
     }
@@ -246,6 +244,9 @@ while(com!=0)
 	switch(com)
 	{
 		case 1:
+		   if (!t1.readFromFile("input1.txt") || !t2.readFromFile("input2.txt")) {
+                  exit(1);
+               }
                     cout << "\nТаблица 1:\n";
                     t1.print();
                     cout << "\nТаблица 2:\n";
@@ -253,20 +254,36 @@ while(com!=0)
 		 break;
 		 
 		 case 2:
+		{
 		 cout<<"Введите номер строки"<<endl;
 		 cin>>strok;
-		 cout<<"Средняя температура по "<<strok<<" строке "<<"в Цельсиях : "<< t1.sredn(strok-1)<<endl; 
-		 
+		 try {
+			 double sredn=t1.sredn(strok-1);
+		 cout<<"Средняя температура по "<<strok<<" строке "<<"в Цельсиях : "<< sredn <<endl; 
+	}
+	catch (const std::out_of_range& e) {
+        cout << e.what() << endl; 
+    }
         break;		 
+      }  
 		 
-		 case 3:
-		cout << "Введите номер строки"<<endl;
-        cin >> strok;
-        cout << "Минимальная температура в " << strok << " строке "<< "в Цельсиях : " << t1.min_in_strok(strok - 1)<< endl;
+		 case 3: {
+		 cout << "Введите номер строки"<<endl;
+         cin >> strok;
+         try {
+			 double min=t1.sredn(strok-1);
+        cout << "Минимальная температура в " << strok << " строке "<< "в Цельсиях : " <<min<< endl; 
+        }
+        catch (const std::out_of_range& e){
+			
+			cout << e.what() << endl;
+			}
 		 break;
-		 
+	 }
+	 
 		 case 4:{
-		 table t3 = t1 + t2;
+		 t3=t1+t2;
+		 table summa(t3);
 		 cout<<"Результат суммы двух таблиц : "<<endl;
 		 t3.print();
 		 break;
@@ -286,3 +303,4 @@ while(com!=0)
 return 0;
 }
 ///Остались :  проверки
+///  проверить на примере  

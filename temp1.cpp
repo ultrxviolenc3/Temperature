@@ -124,10 +124,7 @@ class temperature{
 }
 
 	bool sredn(int strok, double* result) {
-    if (temp == nullptr || numstrok == 0) {
-        cout << "Ошибка таблица пуста!"<< endl;
-        return false;
-    }
+    
     if (strok >= numstrok || strok<0) {
         cout << "Ошибка такой строки нет!"<< endl;
         return false;
@@ -144,10 +141,7 @@ class temperature{
 		
 		bool min_in_strok( int strok, double* minimum) { 
     if (!minimum) return false;
-    if (temp == nullptr || numstrok == 0 || numstolb == 0) {
-        cout << "Ошибка таблица пуста!" << endl;
-        return false;
-    }
+    
     if (strok >= numstrok || strok<0) {
         cout << "Ошибка неверный номер строки" << endl;
         return false;
@@ -163,10 +157,6 @@ class temperature{
   
   bool maxtable(double* maximum) {  
     if (!maximum) return false;
-    if (temp == nullptr || numstrok == 0 || numstolb == 0) {
-        cout << "Ошибка: таблица пуста!" << endl;
-        return false;
-    }
     double max = temp[0][0].toC();
     for ( int i = 0; i < numstrok; i++) {
         for ( int j = 0; j < numstolb; j++) {

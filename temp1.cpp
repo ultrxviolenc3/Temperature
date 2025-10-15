@@ -128,7 +128,7 @@ class temperature{
         cout << "Ошибка таблица пуста!"<< endl;
         return false;
     }
-    if (strok >= numstrok || strok<=0) {
+    if (strok >= numstrok || strok<0) {
         cout << "Ошибка такой строки нет!"<< endl;
         return false;
     }
@@ -148,7 +148,7 @@ class temperature{
         cout << "Ошибка таблица пуста!" << endl;
         return false;
     }
-    if (strok >= numstrok || strok<=0) {
+    if (strok >= numstrok || strok<0) {
         cout << "Ошибка неверный номер строки" << endl;
         return false;
     }

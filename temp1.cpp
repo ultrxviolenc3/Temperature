@@ -16,7 +16,7 @@ class temperature{
 		
 		if( scale == 'C' ) return temper ;
 		else if ( scale == 'K' ) return temper - 273.15;
-		else return (temper - 32.0) / 1.8 ; //F
+		return (temper - 32.0) / 1.8 ; //F
 		}
 	
        void print()  {
@@ -35,13 +35,13 @@ class temperature{
 	
 	class table {
 		
-		unsigned int numstrok;
-		unsigned int numstolb;
+		 int numstrok;
+		 int numstolb;
 		temperature** temp;
 		
 		public:
-		table(unsigned int n = 0, unsigned int k =0) : numstrok(n), numstolb(k), temp(nullptr)
-		{
+		table( int n = 0,  int k =0) : numstrok(n), numstolb(k), temp(nullptr)
+		{ 
 			if(n > 0 && k > 0) {
 			
 				temp=new (nothrow) temperature*[n];
@@ -50,12 +50,12 @@ class temperature{
 					cout<<"Ошибка выделения памяти"<<endl;
 					return;
 					}
-				for(unsigned int i=0; i<n; i++)
+				for(int i=0; i<n; i++)
 			{
 			  temp[i] = new (nothrow) temperature[k];
 				  if (!temp[i]) {
                 cout << "Ошибка выделение памяти"<< endl;
-                for (unsigned int j = 0; j < i; ++j) {
+                for ( int j = 0; j < i; j++) {
                    delete[] temp[j];
 				     }
 				       delete[] temp;
@@ -70,15 +70,21 @@ class temperature{
 		}
 		
 		table(const table& other) ///konst kop
-		{ cout << "Konstruktor kop\n"; 
+		{ 
     numstrok = other.numstrok;
     numstolb = other.numstolb;
 
     if (numstrok > 0 && numstolb > 0) {
-        temp = new temperature*[numstrok];
-        for (unsigned int i = 0; i < numstrok; i++) {
-            temp[i] = new temperature[numstolb];
-            for (unsigned int j = 0; j < numstolb; j++) {
+        temp = new(nothrow) temperature*[numstrok];
+        if(temp){
+			cout << "Ошибка выделение памяти"<< endl;
+			}
+        for ( int i = 0; i < numstrok; i++) {
+            temp[i] = new(nothrow) temperature[numstolb];
+            if(!temp[i]){
+				cout << "Ошибка выделение памяти"<< endl;
+				}
+            for ( int j = 0; j < numstolb; j++) {
                 temp[i][j] = other.temp[i][j]; 
             }
         }
@@ -86,11 +92,12 @@ class temperature{
         temp = nullptr;
             }
        }
+       
        table& operator=(const table& other) {
     if (this == &other) return *this;
 
     if (temp) {
-        for (unsigned i = 0; i < numstrok; ++i) delete[] temp[i];
+        for (int i = 0; i < numstrok; i++) delete[] temp[i];
         delete[] temp;
     }
 
@@ -98,10 +105,16 @@ class temperature{
     numstolb = other.numstolb;
 
     if (numstrok && numstolb) {
-        temp = new temperature*[numstrok];
-        for (unsigned i = 0; i < numstrok; ++i) {
-            temp[i] = new temperature[numstolb];
-            for (unsigned j = 0; j < numstolb; ++j)
+        temp = new(nothrow) temperature*[numstrok];
+        if(!temp){
+			cout<<"Ошибка выделения памяти"<<endl;
+			}
+        for ( int i = 0; i < numstrok; i++) {
+            temp[i] = new(nothrow) temperature[numstolb];
+            if(!temp[i]){
+				cout<<"Ошибка выделения памяти"<<endl;
+				}
+            for (int j = 0; j < numstolb; j++)
                 temp[i][j] = other.temp[i][j];
         }
     } else {
@@ -110,18 +123,18 @@ class temperature{
     return *this;
 }
 
-		bool sredn(unsigned int strok, double* result) {
+	bool sredn(int strok, double* result) {
     if (temp == nullptr || numstrok == 0) {
         cout << "Ошибка таблица пуста!"<< endl;
         return false;
     }
-    if (strok >= numstrok) {
+    if (strok >= numstrok || strok<=0) {
         cout << "Ошибка такой строки нет!"<< endl;
         return false;
     }
 
     double sum = 0;
-    for (unsigned int i = 0; i < numstolb; i++)
+    for (int i = 0; i < numstolb; i++)
         sum += temp[strok][i].toC();
 
     *result = sum / numstolb;  
@@ -129,18 +142,18 @@ class temperature{
 }
 
 		
-		bool min_in_strok(unsigned int strok, double* minimum) { 
+		bool min_in_strok( int strok, double* minimum) { 
     if (!minimum) return false;
     if (temp == nullptr || numstrok == 0 || numstolb == 0) {
         cout << "Ошибка таблица пуста!" << endl;
         return false;
     }
-    if (strok >= numstrok) {
+    if (strok >= numstrok || strok<=0) {
         cout << "Ошибка неверный номер строки" << endl;
         return false;
     }
     double tmin= temp[strok][0].toC();
-    for (unsigned int i = 1; i < numstolb; i++) {
+    for (int i = 1; i < numstolb; i++) {
         double val = temp[strok][i].toC();
         if (val < tmin) tmin = val;
     }
@@ -155,8 +168,8 @@ class temperature{
         return false;
     }
     double max = temp[0][0].toC();
-    for (unsigned int i = 0; i < numstrok; ++i) {
-        for (unsigned int j = 0; j < numstolb; ++j) {
+    for ( int i = 0; i < numstrok; i++) {
+        for ( int j = 0; j < numstolb; j++) {
             double val = temp[i][j].toC();
             if (val > max) max = val;
         }
@@ -172,8 +185,8 @@ table operator+(const table& other) { ///peregruzka
 
     table result(numstrok, numstolb);
 
-    for (unsigned int i = 0; i < numstrok; ++i) {
-        for (unsigned int j = 0; j < numstolb; ++j) {
+    for ( int i = 0; i < numstrok; i++) {
+        for ( int j = 0; j < numstolb; j++) {
     
             double valt1 = temp[i][j].gettemper();
             char   sct1 = temp[i][j].getscale();
@@ -200,7 +213,7 @@ table operator+(const table& other) { ///peregruzka
 			
 			if(temp)
 			{
-				for(unsigned int i = 0;i<numstrok;i++)
+				for( int i = 0;i<numstrok;i++)
 				delete[] temp[i];
 				delete[] temp;
 				}
@@ -211,18 +224,18 @@ table operator+(const table& other) { ///peregruzka
             cout << "Ошибка при открытии файла "  << endl;
             return false;
         }
-        unsigned int tnumstrok,tnumstolb;
+        int tnumstrok,tnumstolb;
         if (!(fin >> tnumstrok >> tnumstolb)) {
         cout << "Ошибка не удалось прочитать размеры таблицы"<<endl;
         return false;
     }
         
-        if (tnumstrok == 0 || tnumstolb == 0) {
+        if (tnumstrok <= 0 || tnumstolb <= 0) {
         cout << "Ошибка неверные размеры таблицы" << endl;
         return false;
     }
     if (temp) {
-    for (unsigned int i = 0; i < numstrok; ++i)
+    for ( int i = 0; i < numstrok; i++)
         delete[] temp[i];
     delete[] temp;
     temp = nullptr;
@@ -235,7 +248,7 @@ table operator+(const table& other) { ///peregruzka
         cout << "Ошибка выделения памяти" << endl;
         return false;
     }
-        for (unsigned int i = 0; i < numstrok; i++){
+        for ( int i = 0; i < numstrok; i++){
             temp[i] = new (nothrow) temperature[numstolb];
          if (!temp[i]) {
            cout << "Ошибка выделения памяти " << endl;
@@ -246,17 +259,21 @@ table operator+(const table& other) { ///peregruzka
     
     }
    } 
-    for (unsigned i = 0; i < numstrok; ++i) {
-        for (unsigned j = 0; j < numstolb; ++j) {
+    for (int i = 0; i < numstrok; i++) {
+        for (int j = 0; j < numstolb; j++) {
             double val;
             char sc;
 
             if (!(fin >> val >> sc)) {
-                cout << "Ошибка к неверный формат данных в ячейке "<< endl;
+                if (fin.eof()) {
+                    cout << "Ошибка в файле меньше данных чем указано размерами таблицы!" << endl;
+                } else {
+                    cout << "Ошибка неверный формат данных в ячейке" << endl;
+                }
                 return false;
-          }
+            }
             if (sc != 'C' && sc != 'K' && sc != 'F') {
-                cout << "Ошибка неизвестная шкала '" << endl;
+                cout << "Ошибка неизвестная шкала " << endl;
                 return false;
             }
 
@@ -275,7 +292,12 @@ table operator+(const table& other) { ///peregruzka
             temp[i][j].set(val, sc);
         }
     }
-
+      double dopval;
+       char   dopsc;
+        if (fin >> dopval >> dopsc) {
+    cout << "Ошибка в файле больше данных чем указано размерами таблицы!" << endl;
+    return false;
+}
         
         fin.close();
         return true;
@@ -284,8 +306,8 @@ table operator+(const table& other) { ///peregruzka
 	  
 	 
 	  void print()  {
-        for (unsigned int i = 0; i < numstrok; ++i) {
-            for (unsigned int j = 0; j < numstolb; ++j) {
+        for ( int i = 0; i < numstrok; i++) {
+            for ( int j = 0; j < numstolb; j++) {
                 temp[i][j].print();
                 cout << " ";
             }
@@ -373,4 +395,4 @@ while(com!=0)
 
 return 0;
 }
-///сумма проверки??
+

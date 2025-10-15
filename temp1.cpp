@@ -76,7 +76,7 @@ class temperature{
 
     if (numstrok > 0 && numstolb > 0) {
         temp = new(nothrow) temperature*[numstrok];
-        if(temp){
+        if(!temp){
 			cout << "Ошибка выделение памяти"<< endl;
 			}
         for ( int i = 0; i < numstrok; i++) {

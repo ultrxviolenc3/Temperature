@@ -86,6 +86,30 @@ class temperature{
         temp = nullptr;
             }
        }
+       table& operator=(const table& other) {
+    if (this == &other) return *this;
+
+    if (temp) {
+        for (unsigned i = 0; i < numstrok; ++i) delete[] temp[i];
+        delete[] temp;
+    }
+
+    numstrok = other.numstrok;
+    numstolb = other.numstolb;
+
+    if (numstrok && numstolb) {
+        temp = new temperature*[numstrok];
+        for (unsigned i = 0; i < numstrok; ++i) {
+            temp[i] = new temperature[numstolb];
+            for (unsigned j = 0; j < numstolb; ++j)
+                temp[i][j] = other.temp[i][j];
+        }
+    } else {
+        temp = nullptr;
+    }
+    return *this;
+}
+
 		bool sredn(unsigned int strok, double* result) {
     if (temp == nullptr || numstrok == 0) {
         cout << "Ошибка таблица пуста!"<< endl;
@@ -142,26 +166,31 @@ class temperature{
 }
 table operator+(const table& other) { ///peregruzka
     if (numstrok != other.numstrok || numstolb != other.numstolb) {
-        cout << "Ошибка: таблицы разных размеров, сложение невозможно!" << endl;
-        return false;
+        cout << "Ошибка таблицы разных размеров сложение невозможно!" << endl;
+        return table(); 
     }
 
     table result(numstrok, numstolb);
 
-    for (unsigned int i = 0; i < numstrok; i++) {
-        for (unsigned int j = 0; j < numstolb; j++) {
-            double t1 = temp[i][j].toC();               
-            double t2 = other.temp[i][j].toC();        
-            double sumC = t1 + t2;                     
+    for (unsigned int i = 0; i < numstrok; ++i) {
+        for (unsigned int j = 0; j < numstolb; ++j) {
+    
+            double valt1 = temp[i][j].gettemper();
+            char   sct1 = temp[i][j].getscale();
+            double valt2 = other.temp[i][j].gettemper();
+            char   sct2 = other.temp[i][j].getscale();
 
-            char scale = temp[i][j].getscale();   
-            double summa;
+            double valt2sct1;
+            if (sct1 == sct2) {
+                valt2sct1 = valt2; 
+            } else {
+                double valt2C = (sct2=='C') ? valt2 : (sct2=='K') ? (valt2 - 273.15)  : (valt2 - 32.0) / 1.8; 
+              
+                valt2sct1 = (sct1=='C') ? valt2C  : (sct1=='K') ? (valt2C + 273.15)  : (valt2C * 1.8 + 32.0);  
+            }
 
-            if (scale == 'C') summa = sumC;
-            else if (scale == 'K') summa = sumC + 273.15;
-            else summa = sumC * 1.8 + 32.0;         
-
-            result.temp[i][j].set(summa, scale);
+            double sum = valt1 + valt2sct1;           
+            result.temp[i][j].set(sum, sct1);       
         }
     }
     return result;
